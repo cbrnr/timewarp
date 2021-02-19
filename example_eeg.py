@@ -26,5 +26,5 @@ tfr = mne.time_frequency.tfr_multitaper(epochs, freqs=freqs, n_cycles=freqs,
 tfr.average().plot(baseline=None, mode="ratio", show=False)
 
 # plot time-warped TFR
-tfr_warped = tfr_timewarp(tfr, durations)
+tfr_warped = tfr_timewarp(tfr, durations / raw.info["sfreq"])
 tfr_warped.average().plot(baseline=None, mode="ratio", show=False)
