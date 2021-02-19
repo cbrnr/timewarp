@@ -28,7 +28,7 @@ def generate_epochs(n=30, fs=500, f1=10, f2=20, baseline=0):
     -------
     epochs : mne.EpochsTFR
         Epochs containing toy data.
-    durations : array-like
+    durations : numpy.ndarray
         Duration of each epoch (in s).
     """
     rng = np.random.default_rng(1)
@@ -50,7 +50,20 @@ def generate_epochs(n=30, fs=500, f1=10, f2=20, baseline=0):
 
 
 def tfr_timewarp(tfr, durations):
-    """Timewarp TFR for each epoch."""
+    """Timewarp TFR for variable-length epochs.
+
+    Parameters
+    ----------
+    tfr : mne.time_frequency.EpochsTFR
+        Precomputed EpochsTFR using fixed-length epochs.
+    durations : numpy.ndarray
+        Duration of each epoch (in s).
+
+    Returns
+    -------
+    warped : mne.time_frequency.EpochsTFR
+        Time-warped EpochsTFR.
+    """
     tstart = np.zeros_like(durations, dtype=int)
     tstop = (durations * tfr.info["sfreq"]).astype(int) + 1
     max_samp = np.max(tstop - tstart)
