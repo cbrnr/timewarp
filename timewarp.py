@@ -44,7 +44,7 @@ def generate_epochs(n=30, fs=500, f1=10, f2=20, baseline=0):
 
     info = mne.create_info(1, sfreq=fs, ch_types="eeg")
     if baseline > 0:
-        array = np.column_stack([np.zeros((n, int(baseline * fs))), array])
+        array = np.column_stack((np.zeros((n, int(baseline * fs))), array))
     epochs = mne.EpochsArray(array[:, np.newaxis, :], info, tmin=-baseline)
     return epochs, durations
 
@@ -55,17 +55,17 @@ def tfr_timewarp(tfr, durations):
     tstop = (durations * tfr.info["sfreq"]).astype(int) + 1
     max_samp = np.max(tstop - tstart)
     data = np.empty((*tfr.data.shape[:-1], max_samp))
-
+    baseline = tfr.times < 0
     for i, epoch in enumerate(tfr.data):
-        cropped = epoch[..., np.arange(tstart[i], tstop[i])]
+        cropped = epoch[..., np.arange(tstart[i], tstop[i]) + baseline.sum()]
         data[i] = resample_poly(cropped, up=max_samp, down=cropped.shape[-1],
                                 axis=-1, padtype="line")
-
+    data = np.concatenate((tfr.data[..., baseline], data), axis=-1)
     return mne.time_frequency.EpochsTFR(tfr.info, data, tfr.times, tfr.freqs)
 
 
 # generate toy data
-epochs, durations = generate_epochs()
+epochs, durations = generate_epochs(baseline=2.5)
 epochs.plot_image(colorbar=False, evoked=False, title="Epochs", show=False)
 
 # plot classical TFR
