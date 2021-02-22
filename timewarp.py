@@ -28,4 +28,4 @@ def tfr_timewarp(tfr, durations):
         data[i] = resample_poly(cropped, up=max_samp, down=cropped.shape[-1],
                                 axis=-1, padtype="line")
     data = np.concatenate((tfr.data[..., baseline], data), axis=-1)
-    return EpochsTFR(tfr.info, data, tfr.times, tfr.freqs)
+    return EpochsTFR(tfr.info, data, tfr.times[:data.shape[-1]], tfr.freqs)
