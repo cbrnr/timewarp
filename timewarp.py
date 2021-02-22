@@ -19,7 +19,7 @@ def tfr_timewarp(tfr, durations):
         Time-warped EpochsTFR.
     """
     tstart = np.zeros_like(durations, dtype=int)
-    tstop = (durations * tfr.info["sfreq"]).astype(int) + 1
+    tstop = np.round(durations * tfr.info["sfreq"]).astype(int) + 1
     max_samp = np.max(tstop - tstart)
     data = np.empty((*tfr.data.shape[:-1], max_samp))
     baseline = tfr.times < 0
