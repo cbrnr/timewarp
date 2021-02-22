@@ -39,8 +39,8 @@ tmp["op2"] = tmp["op2"].astype(int)
 strategy = pd.read_csv(fpath / "S01_Strategy.csv",
                        usecols=["thisItem", "strat_Keys"])
 strategy.columns = ["item", "strategy"]
-strategy["strategy"].replace({"num_1": "retrieve", "num_2": "count",
-                              "num_3": "transform", "num_4": "other"},
+strategy["strategy"].replace({"num_1": "retrieve", "num_2": "procedure",
+                              "num_3": "procedure", "num_4": "other"},
                              inplace=True)
 log = log.merge(strategy)
 log.drop(columns="item", inplace=True)
@@ -52,15 +52,30 @@ tmax = log["rt"].max()
 epochs = mne.Epochs(raw, events, event_id=dict(onset=2), tmin=-2, tmax=tmax,
                     baseline=None, reject_by_annotation=False, preload=True)
 
-sel = (log["rt"] > 0) & (log["correct"] == 0)  # epoch selection
+freqs = np.arange(1, 36, 0.5)
+
+# plots for retrieved problems
+ix = (log["rt"] > 0) & (log["correct"] == 0) & (log["strategy"] == "retrieve")
 
 # plot classical TFR
-freqs = np.arange(1, 36, 0.5)
-tfr = mne.time_frequency.tfr_multitaper(epochs[sel], freqs=freqs,
+tfr = mne.time_frequency.tfr_multitaper(epochs[ix], freqs=freqs,
                                         n_cycles=freqs, picks="C3",
                                         average=False, return_itc=False)
 tfr.average().plot(baseline=(None, 0), mode="ratio", dB=True)
 
 # plot time-warped TFR
-tfr_warped = tfr_timewarp(tfr, log["rt"][sel].values)
+tfr_warped = tfr_timewarp(tfr, log["rt"][ix].values)
+tfr_warped.average().plot(baseline=(None, 0), mode="ratio", dB=True)
+
+# plots for procedural problems
+ix = (log["rt"] > 0) & (log["correct"] == 0) & (log["strategy"] == "procedure")
+
+# plot classical TFR
+tfr = mne.time_frequency.tfr_multitaper(epochs[ix], freqs=freqs,
+                                        n_cycles=freqs, picks="C3",
+                                        average=False, return_itc=False)
+tfr.average().plot(baseline=(None, 0), mode="ratio", dB=True)
+
+# plot time-warped TFR
+tfr_warped = tfr_timewarp(tfr, log["rt"][ix].values)
 tfr_warped.average().plot(baseline=(None, 0), mode="ratio", dB=True)
