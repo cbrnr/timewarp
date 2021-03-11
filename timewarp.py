@@ -19,14 +19,15 @@ def tfr_timewarp(tfr, durations):
     warped : mne.time_frequency.EpochsTFR
         Time-warped EpochsTFR.
     """
+    fs = tfr.info["sfreq"]
     start = np.zeros_like(durations, dtype=int)
-    stop = np.round(durations * tfr.info["sfreq"]).astype(int) + 1
-    longest = np.max(stop - start)
+    stop = np.round(durations * fs).astype(int) + 1
+    length = np.round(tfr.times[-1] * fs).astype(int) + 1
     baseline = tfr.times < 0
-    data = np.empty((*tfr.data.shape[:-1], longest))
+    data = np.empty((*tfr.data.shape[:-1], length))
     for i, epoch in enumerate(tfr.data):
         cropped = epoch[..., np.arange(start[i], stop[i]) + baseline.sum()]
-        data[i] = resample_poly(cropped, up=longest, down=cropped.shape[-1],
+        data[i] = resample_poly(cropped, up=length, down=cropped.shape[-1],
                                 axis=-1, padtype="line")
     data = np.concatenate((tfr.data[..., baseline], data), axis=-1)
     return EpochsTFR(tfr.info, data, tfr.times[:data.shape[-1]], tfr.freqs)

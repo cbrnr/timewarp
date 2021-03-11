@@ -55,13 +55,13 @@ def generate_epochs(n=30, fs=500, f1=10, f2=20, baseline=0, append=0):
 
 
 # generate toy data
-epochs, durations = generate_epochs(baseline=2.5, append=1)
+epochs, durations = generate_epochs(baseline=2.5, append=4)
 epochs.plot_image(colorbar=False, evoked=False, title="Epochs")
 
 # plot classical TFR
 freqs = np.arange(1, 36)
 tfr = tfr_multitaper(epochs, freqs=freqs, n_cycles=freqs, picks=0,
-                     average=False, return_itc=False, n_jobs=4)
+                     average=False, return_itc=False)
 tfr.average().plot(baseline=None, mode="ratio")
 
 # plot time-warped TFR

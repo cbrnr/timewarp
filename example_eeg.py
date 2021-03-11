@@ -59,22 +59,22 @@ freqs = np.arange(1, 36, 0.5)
 ix = (log["rt"] > 0) & (log["correct"] == 0) & (log["strategy"] == "retrieve")
 
 # plot classical TFR
-tfr = tfr_multitaper(epochs[ix], freqs=freqs, n_cycles=freqs, picks="C3",
-                     average=False, return_itc=False, n_jobs=4)
-tfr.average().plot(baseline=(None, 0), mode="ratio", dB=True)
+tfr1 = tfr_multitaper(epochs[ix], freqs=freqs, n_cycles=freqs, picks="C3",
+                      average=False, return_itc=False)
+tfr1.average().plot(baseline=(None, 0), mode="ratio", dB=True)
 
 # plot time-warped TFR
-tfr_warped = tfr_timewarp(tfr, log["rt"][ix].values)
-tfr_warped.average().plot(baseline=(None, 0), mode="ratio", dB=True)
+tfr1_warped = tfr_timewarp(tfr1, log["rt"][ix].values)
+tfr1_warped.average().plot(baseline=(None, 0), mode="ratio", dB=True)
 
 # plots for procedural problems
 ix = (log["rt"] > 0) & (log["correct"] == 0) & (log["strategy"] == "procedure")
 
 # plot classical TFR
-tfr = tfr_multitaper(epochs[ix], freqs=freqs, n_cycles=freqs, picks="C3",
-                     average=False, return_itc=False, n_jobs=4)
-tfr.average().plot(baseline=(None, 0), mode="ratio", dB=True)
+tfr2 = tfr_multitaper(epochs[ix], freqs=freqs, n_cycles=freqs, picks="C3",
+                      average=False, return_itc=False)
+tfr2.average().plot(baseline=(None, 0), mode="ratio", dB=True)
 
 # plot time-warped TFR
-tfr_warped = tfr_timewarp(tfr, log["rt"][ix].values)
-tfr_warped.average().plot(baseline=(None, 0), mode="ratio", dB=True)
+tfr2_warped = tfr_timewarp(tfr2, log["rt"][ix].values)
+tfr2_warped.average().plot(baseline=(None, 0), mode="ratio", dB=True)
