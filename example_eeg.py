@@ -2,6 +2,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import mne
+from mne.time_frequency import tfr_multitaper
 from timewarp import tfr_timewarp
 
 
@@ -58,9 +59,8 @@ freqs = np.arange(1, 36, 0.5)
 ix = (log["rt"] > 0) & (log["correct"] == 0) & (log["strategy"] == "retrieve")
 
 # plot classical TFR
-tfr = mne.time_frequency.tfr_multitaper(epochs[ix], freqs=freqs,
-                                        n_cycles=freqs, picks="C3",
-                                        average=False, return_itc=False)
+tfr = tfr_multitaper(epochs[ix], freqs=freqs, n_cycles=freqs, picks="C3",
+                     average=False, return_itc=False, n_jobs=4)
 tfr.average().plot(baseline=(None, 0), mode="ratio", dB=True)
 
 # plot time-warped TFR
@@ -71,9 +71,8 @@ tfr_warped.average().plot(baseline=(None, 0), mode="ratio", dB=True)
 ix = (log["rt"] > 0) & (log["correct"] == 0) & (log["strategy"] == "procedure")
 
 # plot classical TFR
-tfr = mne.time_frequency.tfr_multitaper(epochs[ix], freqs=freqs,
-                                        n_cycles=freqs, picks="C3",
-                                        average=False, return_itc=False)
+tfr = tfr_multitaper(epochs[ix], freqs=freqs, n_cycles=freqs, picks="C3",
+                     average=False, return_itc=False, n_jobs=4)
 tfr.average().plot(baseline=(None, 0), mode="ratio", dB=True)
 
 # plot time-warped TFR
