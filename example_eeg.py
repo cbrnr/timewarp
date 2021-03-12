@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import mne
 from mne.time_frequency import tfr_multitaper
+from mne.baseline import rescale
 from timewarp import tfr_timewarp
 
 
@@ -59,22 +60,30 @@ freqs = np.arange(1, 36, 0.5)
 ix = (log["rt"] > 0) & (log["correct"] == 0) & (log["strategy"] == "retrieve")
 
 # plot classical TFR
-tfr1 = tfr_multitaper(epochs[ix], freqs=freqs, n_cycles=freqs, picks="C3",
-                      average=False, return_itc=False)
-tfr1.average().plot(baseline=(None, 0), mode="ratio", dB=True)
+tfr1 = tfr_multitaper(epochs[ix], freqs=freqs, n_cycles=freqs, picks="P3",
+                      average=False, return_itc=False).crop(tmin=-1.5)
+# tfr1.average().plot(baseline=(None, 0), mode="percent", dB=False)
 
 # plot time-warped TFR
-tfr1_warped = tfr_timewarp(tfr1, log["rt"][ix].values)
-tfr1_warped.average().plot(baseline=(None, 0), mode="ratio", dB=True)
+tfr1_warped = tfr_timewarp(tfr1, log["rt"][ix].values).average()
+tfr1_warped.data = rescale(tfr1_warped.data, tfr1_warped.times,
+                           baseline=(None, 0), mode="percent")
+tfr1_warped.plot()
 
 # plots for procedural problems
 ix = (log["rt"] > 0) & (log["correct"] == 0) & (log["strategy"] == "procedure")
 
 # plot classical TFR
-tfr2 = tfr_multitaper(epochs[ix], freqs=freqs, n_cycles=freqs, picks="C3",
-                      average=False, return_itc=False)
-tfr2.average().plot(baseline=(None, 0), mode="ratio", dB=True)
+tfr2 = tfr_multitaper(epochs[ix], freqs=freqs, n_cycles=freqs, picks="P3",
+                      average=False, return_itc=False).crop(tmin=-1.5)
+# tfr2.average().plot(baseline=(None, 0), mode="percent", dB=False)
 
 # plot time-warped TFR
-tfr2_warped = tfr_timewarp(tfr2, log["rt"][ix].values)
-tfr2_warped.average().plot(baseline=(None, 0), mode="ratio", dB=True)
+tfr2_warped = tfr_timewarp(tfr2, log["rt"][ix].values).average()
+tfr2_warped.data = rescale(tfr2_warped.data, tfr2_warped.times,
+                           baseline=(None, 0), mode="percent")
+tfr2_warped.plot()
+
+# difference between retrieved and procedural problems
+tfr_diff = tfr1_warped - tfr2_warped
+tfr_diff.plot()
