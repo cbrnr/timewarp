@@ -1,7 +1,37 @@
 import numpy as np
-import mne
-from mne.time_frequency import tfr_multitaper
-from timewarp import tfr_timewarp
+from scipy.signal import resample_poly
+from mne import create_info, EpochsArray
+from mne.time_frequency import EpochsTFR
+
+
+def tfr_timewarp(tfr, durations):
+    """Timewarp TFR for variable-length epochs.
+
+    Parameters
+    ----------
+    tfr : mne.time_frequency.EpochsTFR
+        Precomputed EpochsTFR using fixed-length epochs. Time-warping is based
+        on the duration of the longest epoch.
+    durations : numpy.ndarray
+        Duration of each epoch (in s).
+
+    Returns
+    -------
+    warped : mne.time_frequency.EpochsTFR
+        Time-warped EpochsTFR.
+    """
+    fs = tfr.info["sfreq"]
+    start = np.zeros_like(durations, dtype=int)
+    stop = np.round(durations * fs).astype(int) + 1
+    length = np.round(tfr.times[-1] * fs).astype(int) + 1
+    baseline = tfr.times < 0
+    data = np.empty((*tfr.data.shape[:-1], length))
+    for i, epoch in enumerate(tfr.data):
+        cropped = epoch[..., np.arange(start[i], stop[i]) + baseline.sum()]
+        data[i] = resample_poly(cropped, up=length, down=cropped.shape[-1],
+                                axis=-1, padtype="line")
+    data = np.concatenate((tfr.data[..., baseline], data), axis=-1)
+    return EpochsTFR(tfr.info, data, tfr.times[:data.shape[-1]], tfr.freqs)
 
 
 def generate_epochs(n=30, fs=500, f1=10, f2=20, baseline=0, append=0):
@@ -45,25 +75,10 @@ def generate_epochs(n=30, fs=500, f1=10, f2=20, baseline=0, append=0):
         array[i][half1] = 2e-6 * np.sin(2 * np.pi * f1 * t[half1])
         array[i][half2] = 1e-6 * np.sin(2 * np.pi * f2 * t[half2])
 
-    info = mne.create_info(1, sfreq=fs, ch_types="eeg")
+    info = create_info(1, sfreq=fs, ch_types="eeg")
     if baseline > 0:
         array = np.column_stack((np.zeros((n, int(baseline * fs))), array))
     if append > 0:
         array = np.column_stack((array, np.zeros((n, int(append * fs)))))
-    epochs = mne.EpochsArray(array[:, np.newaxis, :], info, tmin=-baseline)
+    epochs = EpochsArray(array[:, np.newaxis, :], info, tmin=-baseline)
     return epochs, durations
-
-
-# generate toy data
-epochs, durations = generate_epochs(baseline=2.5, append=4)
-epochs.plot_image(colorbar=False, evoked=False, title="Epochs")
-
-# plot classical TFR
-freqs = np.arange(1, 36)
-tfr = tfr_multitaper(epochs, freqs=freqs, n_cycles=freqs, picks=0,
-                     average=False, return_itc=False)
-tfr.average().plot(baseline=None, mode="ratio")
-
-# plot time-warped TFR
-tfr_warped = tfr_timewarp(tfr, durations)
-tfr_warped.average().plot(baseline=None, mode="ratio")
