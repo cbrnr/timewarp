@@ -14,6 +14,7 @@ raw = mne.io.read_raw_bdf(fpath / "S01.bdf",
                           preload=True)
 fs = raw.info["sfreq"]
 events = mne.find_events(raw, uint_cast=True)
+events = events[events[:, 2] == 2, :]  # keep only problem onset events (2)
 
 # preprocess
 raw.drop_channels("Status")
@@ -47,39 +48,40 @@ strategy["strategy"].replace({"num_1": "retrieve", "num_2": "procedure",
 log = log.merge(strategy)
 log.drop(columns="item", inplace=True)
 rt = pd.read_csv(fpath / "S01_RT.csv")
-log = pd.concat((tmp, log, rt), axis="columns")
+metadata = pd.concat((tmp, log, rt), axis="columns")
 
-tmax = log["rt"].max()
+tmax = metadata["rt"].max()
 
 epochs = mne.Epochs(raw, events, event_id=dict(onset=2), tmin=-2, tmax=tmax,
-                    baseline=None, reject_by_annotation=False, preload=True)
+                    baseline=None, reject_by_annotation=True, preload=True,
+                    metadata=metadata)
 
 freqs = np.arange(1, 36, 0.5)
 
-# plots for retrieved problems
-ix = (log["rt"] > 0) & (log["correct"] == 0) & (log["strategy"] == "retrieve")
+# retrieved problems
+query = "rt > 0 and correct == 0 and strategy == 'retrieve'"
 
 # plot classical TFR
-tfr1 = tfr_multitaper(epochs[ix], freqs=freqs, n_cycles=freqs, picks="P3",
+tfr1 = tfr_multitaper(epochs[query], freqs=freqs, n_cycles=freqs, picks="P3",
                       average=False, return_itc=False).crop(tmin=-1.5)
-# tfr1.average().plot(baseline=(None, 0), mode="percent", dB=False)
+tfr1.average().plot(baseline=(None, 0), mode="percent", dB=False)
 
 # plot time-warped TFR
-tfr1_warped = tfr_timewarp(tfr1, log["rt"][ix].values).average()
+tfr1_warped = tfr_timewarp(tfr1, epochs[query].metadata["rt"].values).average()
 tfr1_warped.data = rescale(tfr1_warped.data, tfr1_warped.times,
                            baseline=(None, 0), mode="percent")
 tfr1_warped.plot()
 
 # plots for procedural problems
-ix = (log["rt"] > 0) & (log["correct"] == 0) & (log["strategy"] == "procedure")
+query = "rt > 0 and correct == 0 and strategy == 'procedure'"
 
 # plot classical TFR
-tfr2 = tfr_multitaper(epochs[ix], freqs=freqs, n_cycles=freqs, picks="P3",
+tfr2 = tfr_multitaper(epochs[query], freqs=freqs, n_cycles=freqs, picks="P3",
                       average=False, return_itc=False).crop(tmin=-1.5)
-# tfr2.average().plot(baseline=(None, 0), mode="percent", dB=False)
+tfr2.average().plot(baseline=(None, 0), mode="percent", dB=False)
 
 # plot time-warped TFR
-tfr2_warped = tfr_timewarp(tfr2, log["rt"][ix].values).average()
+tfr2_warped = tfr_timewarp(tfr2, epochs[query].metadata["rt"].values).average()
 tfr2_warped.data = rescale(tfr2_warped.data, tfr2_warped.times,
                            baseline=(None, 0), mode="percent")
 tfr2_warped.plot()
