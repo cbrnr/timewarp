@@ -34,7 +34,7 @@ def tfr_timewarp(tfr, durations):
     return EpochsTFR(tfr.info, data, tfr.times[:data.shape[-1]], tfr.freqs)
 
 
-def generate_epochs(n=30, fs=500, f1=10, f2=20, baseline=0, append=0):
+def generate_epochs(n=30, chs=1, fs=500, f1=10, f2=20, baseline=0, append=0):
     """Create one-dimensional toy data consisting of variable length epochs.
 
     Each of the n epochs contains an oscillation with f1 Hz in the first half
@@ -46,6 +46,8 @@ def generate_epochs(n=30, fs=500, f1=10, f2=20, baseline=0, append=0):
     ----------
     n : int
         Number of epochs.
+    chs : int
+        Number of channels.
     fs : int | float
         Sampling frequency (in Hz).
     f1 : int | float
@@ -66,19 +68,21 @@ def generate_epochs(n=30, fs=500, f1=10, f2=20, baseline=0, append=0):
     """
     rng = np.random.default_rng(1)
     durations = rng.lognormal(mean=0, sigma=2, size=n) + 1  # in s
-    array = np.zeros((n, len(np.arange(0, durations.max(), 1 / fs))))
+    array = np.zeros((n, chs, len(np.arange(0, durations.max(), 1 / fs))))
 
     for i, dur in enumerate(durations):
         t = np.arange(0, dur, 1 / fs)
         half1 = slice(0, len(t) // 2)
         half2 = slice(len(t) // 2, len(t))
-        array[i][half1] = 2e-6 * np.sin(2 * np.pi * f1 * t[half1])
-        array[i][half2] = 1e-6 * np.sin(2 * np.pi * f2 * t[half2])
+        array[i, :, half1] = 2e-6 * np.sin(2 * np.pi * f1 * t[half1])
+        array[i, :, half2] = 1e-6 * np.sin(2 * np.pi * f2 * t[half2])
 
-    info = create_info(1, sfreq=fs, ch_types="eeg")
+    info = create_info(chs, sfreq=fs, ch_types="eeg")
     if baseline > 0:
-        array = np.column_stack((np.zeros((n, int(baseline * fs))), array))
+        zeros = np.zeros((n, chs, int(baseline * fs)))
+        array = np.concatenate((zeros, array), axis=-1)
     if append > 0:
-        array = np.column_stack((array, np.zeros((n, int(append * fs)))))
-    epochs = EpochsArray(array[:, np.newaxis, :], info, tmin=-baseline)
+        zeros = np.zeros((n, chs, int(append * fs)))
+        array = np.concatenate((array, zeros), axis=-1)
+    epochs = EpochsArray(array, info, tmin=-baseline)
     return epochs, durations
