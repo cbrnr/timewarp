@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 import mne
 from mne.time_frequency import tfr_multitaper
-from mne.baseline import rescale
 from timewarp import tfr_timewarp
 
 
@@ -61,31 +60,27 @@ freqs = np.arange(1, 36, 0.5)
 # retrieved problems
 query = "rt > 0 and correct == 0 and strategy == 'retrieve'"
 
-# plot classical TFR
+# compute classical TFR
 tfr1 = tfr_multitaper(epochs[query], freqs=freqs, n_cycles=freqs, picks="P3",
                       average=False, return_itc=False).crop(tmin=-1.5)
-tfr1.average().plot(baseline=(None, 0), mode="percent", dB=False)
 
 # plot time-warped TFR
 tfr1_warped = tfr_timewarp(tfr1, epochs[query].metadata["rt"].values).average()
-tfr1_warped.data = rescale(tfr1_warped.data, tfr1_warped.times,
-                           baseline=(None, 0), mode="percent")
-tfr1_warped.plot()
+tfr1_warped.apply_baseline(baseline=(None, 0), mode="percent")
+tfr1_warped.plot(title="retrieved")
 
 # plots for procedural problems
 query = "rt > 0 and correct == 0 and strategy == 'procedure'"
 
-# plot classical TFR
+# compute classical TFR
 tfr2 = tfr_multitaper(epochs[query], freqs=freqs, n_cycles=freqs, picks="P3",
                       average=False, return_itc=False).crop(tmin=-1.5)
-tfr2.average().plot(baseline=(None, 0), mode="percent", dB=False)
 
 # plot time-warped TFR
 tfr2_warped = tfr_timewarp(tfr2, epochs[query].metadata["rt"].values).average()
-tfr2_warped.data = rescale(tfr2_warped.data, tfr2_warped.times,
-                           baseline=(None, 0), mode="percent")
-tfr2_warped.plot()
+tfr2_warped.apply_baseline(baseline=(None, 0), mode="percent")
+tfr2_warped.plot(title="procedural")
 
-# difference between retrieved and procedural problems
+# show difference between retrieved and procedural problems
 tfr_diff = tfr1_warped - tfr2_warped
-tfr_diff.plot()
+tfr_diff.plot(title="retrieved – procedural")
