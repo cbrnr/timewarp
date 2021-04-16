@@ -58,29 +58,24 @@ epochs = mne.Epochs(raw, events, event_id=dict(onset=2), tmin=-2, tmax=tmax,
 freqs = np.arange(1, 36, 0.5)
 
 # retrieved problems
-query = "rt > 0 and correct == 0 and strategy == 'retrieve'"
-
-# compute classical TFR
-tfr1 = tfr_multitaper(epochs[query], freqs=freqs, n_cycles=freqs, picks="P3",
-                      average=False, return_itc=False).crop(tmin=-1.5)
-
-# plot time-warped TFR
-tfr1_warped = tfr_timewarp(tfr1, epochs[query].metadata["rt"].values).average()
-tfr1_warped.apply_baseline(baseline=(None, 0), mode="percent")
-tfr1_warped.plot(title="retrieved")
-
-# plots for procedural problems
 query = "rt > 0 and correct == 0 and strategy == 'procedure'"
+durations = epochs[query].metadata["rt"].values
+chs = mne.pick_types(epochs.info, eeg=True)
+chunk = 4
+for i in range(0, len(chs), chunk):
+    ch = chs[i:i + chunk]
+    tfr = tfr_multitaper(epochs[query], freqs=freqs, n_cycles=freqs,
+                         picks=ch, n_jobs=min(chunk, len(ch)), average=False,
+                         return_itc=False).crop(tmin=-1.5)
+    tmp = tfr_timewarp(tfr, durations).average()
+    tmp.apply_baseline(baseline=(None, 0), mode="percent")
+    if i == 0:
+        tfr_warped = tmp
+    else:
+        tfr_warped.add_channels([tmp])
 
-# compute classical TFR
-tfr2 = tfr_multitaper(epochs[query], freqs=freqs, n_cycles=freqs, picks="P3",
-                      average=False, return_itc=False).crop(tmin=-1.5)
+tfr_warped.save("S01-procedure-tfr-parallel.h5")
 
-# plot time-warped TFR
-tfr2_warped = tfr_timewarp(tfr2, epochs[query].metadata["rt"].values).average()
-tfr2_warped.apply_baseline(baseline=(None, 0), mode="percent")
-tfr2_warped.plot(title="procedural")
-
-# show difference between retrieved and procedural problems
-tfr_diff = tfr1_warped - tfr2_warped
-tfr_diff.plot(title="retrieved – procedural")
+# # show difference between retrieved and procedural problems
+# tfr_diff = tfr1_warped - tfr2_warped
+# tfr_diff.plot(title="retrieved – procedural")
