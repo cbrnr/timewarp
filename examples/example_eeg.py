@@ -8,8 +8,7 @@ from timewarp import tfr_timewarp
 
 # load data
 fpath = Path("/Users/clemens/Downloads/testfiles")
-raw = mne.io.read_raw_bdf(fpath / "S01.bdf",
-                          exclude=[f"EXG{i}" for i in range(1, 9)],
+raw = mne.io.read_raw_bdf(fpath / "S01.bdf", exclude=[f"EXG{i}" for i in range(1, 9)],
                           preload=True)
 fs = raw.info["sfreq"]
 events = mne.find_events(raw, uint_cast=True)
@@ -19,8 +18,7 @@ events = events[events[:, 2] == 2, :]  # keep only problem onset events (2)
 raw.drop_channels("Status")
 raw.set_montage("biosemi64")
 raw.filter(1, 50)
-bad_segments = np.loadtxt(fpath / "S01_bad_segments.csv", skiprows=1,
-                          delimiter=",", ndmin=2) / fs
+bad_segments = np.loadtxt(fpath / "S01_bad_segments.csv", skiprows=1, delimiter=",") / fs
 raw.set_annotations(mne.Annotations(*bad_segments.T, "bad_segment"))
 
 with open(fpath / "S01_bad_channels.csv") as f:
@@ -38,12 +36,10 @@ tmp = log["item"].str.split(expand=True)
 tmp.columns = ["op1", "op", "op2"]
 tmp["op1"] = tmp["op1"].astype(int)
 tmp["op2"] = tmp["op2"].astype(int)
-strategy = pd.read_csv(fpath / "S01_Strategy.csv",
-                       usecols=["thisItem", "strat_Keys"])
+strategy = pd.read_csv(fpath / "S01_Strategy.csv", usecols=["thisItem", "strat_Keys"])
 strategy.columns = ["item", "strategy"]
 strategy["strategy"].replace({"num_1": "retrieve", "num_2": "procedure",
-                              "num_3": "procedure", "num_4": "other"},
-                             inplace=True)
+                              "num_3": "procedure", "num_4": "other"}, inplace=True)
 log = log.merge(strategy)
 log.drop(columns="item", inplace=True)
 rt = pd.read_csv(fpath / "S01_RT.csv")
@@ -51,22 +47,19 @@ metadata = pd.concat((tmp, log, rt), axis="columns")
 
 tmax = metadata["rt"].max()
 
-epochs = mne.Epochs(raw, events, event_id=dict(onset=2), tmin=-2, tmax=tmax,
-                    baseline=None, reject_by_annotation=True, preload=True,
-                    metadata=metadata)
-
+epochs = mne.Epochs(raw, events, event_id=dict(onset=2), tmin=-2, tmax=tmax, baseline=None,
+                    reject_by_annotation=True, preload=True, metadata=metadata)
 freqs = np.arange(1, 36, 0.5)
 
 # retrieved problems
 query = "rt > 0 and correct == 0 and strategy == 'procedure'"
 durations = epochs[query].metadata["rt"].values
 chs = mne.pick_types(epochs.info, eeg=True)
-chunk = 4
+chunk = 4  # this should equal the number of CPU cores (at most)
 for i in range(0, len(chs), chunk):
     ch = chs[i:i + chunk]
-    tfr = tfr_multitaper(epochs[query], freqs=freqs, n_cycles=freqs,
-                         picks=ch, n_jobs=min(chunk, len(ch)), average=False,
-                         return_itc=False).crop(tmin=-1.5)
+    tfr = tfr_multitaper(epochs[query], freqs, freqs, picks=ch, n_jobs=min(chunk, len(ch)),
+                         average=False, return_itc=False).crop(tmin=-1.5)
     tmp = tfr_timewarp(tfr, durations).average()
     tmp.apply_baseline(baseline=(None, 0), mode="percent")
     if i == 0:

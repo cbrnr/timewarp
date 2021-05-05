@@ -10,8 +10,8 @@ def tfr_timewarp(tfr, durations):
     Parameters
     ----------
     tfr : mne.time_frequency.EpochsTFR
-        Precomputed EpochsTFR using fixed-length epochs. Time-warping is based
-        on the duration of the longest epoch.
+        Precomputed EpochsTFR using fixed-length epochs. Time-warping is based on the
+        duration of the longest epoch.
     durations : numpy.ndarray
         Duration of each epoch (in s).
 
@@ -28,8 +28,7 @@ def tfr_timewarp(tfr, durations):
     data = np.empty((*tfr.data.shape[:-1], length))
     for i, epoch in enumerate(tfr.data):
         cropped = epoch[..., np.arange(start[i], stop[i]) + baseline.sum()]
-        data[i] = resample_poly(cropped, up=length, down=cropped.shape[-1],
-                                axis=-1, padtype="line")
+        data[i] = resample_poly(cropped, length, cropped.shape[-1], axis=-1, padtype="line")
     data = np.concatenate((tfr.data[..., baseline], data), axis=-1)
     return EpochsTFR(tfr.info, data, tfr.times[:data.shape[-1]], tfr.freqs)
 
@@ -37,10 +36,10 @@ def tfr_timewarp(tfr, durations):
 def generate_epochs(n=30, chs=1, fs=500, f1=10, f2=20, baseline=0, append=0):
     """Create one-dimensional toy data consisting of variable length epochs.
 
-    Each of the n epochs contains an oscillation with f1 Hz in the first half
-    and an oscillation with f2 Hz in the second half. MNE supports only
-    rectangular (constant-length) epochs, so all epochs that are shorter than
-    the longest epoch will be zero-padded at the end.
+    Each of the n epochs contains an oscillation with f1 Hz in the first half and an
+    oscillation with f2 Hz in the second half. MNE supports only rectangular
+    (constant-length) epochs, so all epochs that are shorter than the longest epoch will be
+    zero-padded at the end.
 
     Parameters
     ----------
