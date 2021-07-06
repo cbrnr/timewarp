@@ -1,3 +1,5 @@
+"""Time-warp variable-length TFRs."""
+
 import numpy as np
 from scipy.signal import resample_poly
 from mne import create_info, EpochsArray
