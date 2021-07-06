@@ -1,3 +1,5 @@
+"""Time-warping example using real EEG data."""
+
 from pathlib import Path
 import numpy as np
 import pandas as pd
