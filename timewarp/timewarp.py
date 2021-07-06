@@ -34,10 +34,10 @@ def tfr_timewarp(tfr, durations):
 
 
 def generate_epochs(n=30, chs=1, fs=500, f1=10, f2=20, baseline=0, append=0):
-    """Create one-dimensional toy data consisting of variable length epochs.
+    """Create toy data consisting of epochs with variable random lengths.
 
-    Each of the n epochs contains an oscillation with f1 Hz in the first half and an
-    oscillation with f2 Hz in the second half. MNE supports only rectangular
+    Each of the n epochs contains an oscillation with f1 Hz in its first half and an
+    oscillation with f2 Hz in its second half. MNE supports only rectangular
     (constant-length) epochs, so all epochs that are shorter than the longest epoch will be
     zero-padded at the end.
 
