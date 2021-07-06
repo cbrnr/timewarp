@@ -56,7 +56,7 @@ def generate_epochs(n=30, chs=1, fs=500, f1=10, f2=20, baseline=0, append=0):
     f2 : int | float
         Oscillation frequency in second epoch half (in Hz).
     baseline : int | float
-        Baseline duration (in s).
+        Baseline duration (in s). Contains small non-zero values.
     append : int | float
         Zero-padding (in s) added to the longest epoch.
 
@@ -75,13 +75,13 @@ def generate_epochs(n=30, chs=1, fs=500, f1=10, f2=20, baseline=0, append=0):
         t = np.arange(0, dur, 1 / fs)
         half1 = slice(0, len(t) // 2)
         half2 = slice(len(t) // 2, len(t))
-        array[i, :, half1] = 2e-6 * np.sin(2 * np.pi * f1 * t[half1])
+        array[i, :, half1] = 3e-6 * np.sin(2 * np.pi * f1 * t[half1])
         array[i, :, half2] = 1e-6 * np.sin(2 * np.pi * f2 * t[half2])
 
     info = create_info(chs, sfreq=fs, ch_types="eeg")
     if baseline > 0:
-        zeros = np.zeros((n, chs, int(baseline * fs)))
-        array = np.concatenate((zeros, array), axis=-1)
+        values = np.full((n, chs, int(baseline * fs)), 1e-7)
+        array = np.concatenate((values, array), axis=-1)
     if append > 0:
         zeros = np.zeros((n, chs, int(append * fs)))
         array = np.concatenate((array, zeros), axis=-1)

@@ -9,9 +9,9 @@ epochs.plot_image(colorbar=False, evoked=False, title="Epochs")
 
 # plot classical TFR
 freqs = np.arange(1, 36)
-tfr = tfr_multitaper(epochs, freqs=freqs, n_cycles=freqs, average=False, return_itc=True)
-tfr.average().plot(baseline=None, mode="ratio", title="Classic")
+tfr = tfr_multitaper(epochs, freqs=freqs, n_cycles=freqs, average=False, return_itc=False)
+tfr.average().plot(baseline=(-2.5, -0.5), mode="ratio", title="Classic")
 
 # plot time-warped TFR
 tfr_warped = tfr_timewarp(tfr, durations)
-tfr_warped.average().plot(baseline=None, mode="ratio", title="Time-warped")
+tfr_warped.average().plot(baseline=(-2.5, -0.5), mode="ratio", title="Time-warped")
