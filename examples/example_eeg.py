@@ -42,7 +42,7 @@ strategy = pd.read_csv(fpath / "S01_Strategy.csv", usecols=["thisItem", "strat_K
 strategy.columns = ["item", "strategy"]
 strategy["strategy"].replace({"num_1": "retrieve", "num_2": "procedure",
                               "num_3": "procedure", "num_4": "other"}, inplace=True)
-log = log.merge(strategy)
+log = log.merge(strategy, how="left")
 log.drop(columns="item", inplace=True)
 rt = pd.read_csv(fpath / "S01_RT.csv")
 metadata = pd.concat((tmp, log, rt), axis="columns")
