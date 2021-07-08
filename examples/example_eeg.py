@@ -22,6 +22,7 @@ def plot_tfr_grid(tfr, title=None, figsize=None, show=True):
                 Pz=(6, 4), P2=(6, 5), P4=(6, 6), P6=(6, 7), P8=(6, 8), PO7=(7, 2),
                 PO3=(7, 3), POz=(7, 4), PO4=(7, 5), PO8=(7, 6), O1=(8, 3), Oz=(8, 4),
                 O2=(8, 5), P9=(7, 0), P10=(7, 8))
+    xticks = np.quantile(tfr_diff.times[tfr_diff.times >= 0], [0, 0.25, 0.5, 0.75, 1])
     fig, axes = plt.subplots(9, 9, sharex=True, sharey=True, figsize=figsize)
     for ax in axes.flat:  # turn all axes off by default
         ax.set_axis_off()
@@ -32,8 +33,10 @@ def plot_tfr_grid(tfr, title=None, figsize=None, show=True):
                  verbose=False)
         ax.axvline(color="black", linewidth=0.5, linestyle="--")
         ax.set_xlabel(None)
+        ax.set_xticks(xticks)
+        ax.set_xticklabels([0, 25, 50, 75, 100])
         ax.set_ylabel(None)
-        ax.text(0.95, 0.85, ch, transform=ax.transAxes, size=8, horizontalalignment="right")
+        ax.text(0.03, 0.85, ch, transform=ax.transAxes, size=8)
     for row in range(9):  # show y-axis labels only in left column
         ax = axes[(row, 0)]
         if ax.axison:
@@ -42,7 +45,7 @@ def plot_tfr_grid(tfr, title=None, figsize=None, show=True):
     for col in range(9):  # show x-axis labels only in bottom row
         ax = axes[(8, col)]
         if ax.axison:
-            ax.set_xlabel(r"$\it{t}$ (s)", size=8)
+            ax.set_xlabel(r"$\it{t}$ (%)", size=8)
             ax.tick_params(labelsize=7)
     fig.suptitle(title)
     if show:
