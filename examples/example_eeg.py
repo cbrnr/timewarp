@@ -4,8 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import mne
-from mne.time_frequency import tfr_multitaper
-from timewarp import tfr_timewarp, plot_tfr_grid
+from timewarp import tfr_timewarp_multichannel, plot_tfr_grid
 
 
 # load data
@@ -55,37 +54,15 @@ freqs = np.arange(2, 36, 0.5)
 # retrieved problems
 query = "rt > 0 and correct == 0 and strategy == 'retrieve'"
 durations = epochs[query].metadata["rt"].values
-chs = mne.pick_types(epochs.info, eeg=True)
-chunk = 4  # this should equal the number of CPU cores (for parallel computation)
-for i in range(0, len(chs), chunk):
-    ch = chs[i:i + chunk]
-    tfr = tfr_multitaper(epochs[query], freqs, freqs, picks=ch, n_jobs=min(chunk, len(ch)),
-                         average=False, return_itc=False).crop(tmin=-1.5)
-    tmp = tfr_timewarp(tfr, durations).average()
-    tmp.apply_baseline(baseline=(None, -0.5), mode="percent")
-    if i == 0:
-        tfr_warped = tmp
-    else:
-        tfr_warped.add_channels([tmp])
 
+tfr_warped = tfr_timewarp_multichannel(epochs[query], durations, freqs, n_jobs=4)
 tfr_warped.save("S01-retrieve-tfr.h5")
 
 # procedural problems
 query = "rt > 0 and correct == 0 and strategy == 'procedure'"
 durations = epochs[query].metadata["rt"].values
-chs = mne.pick_types(epochs.info, eeg=True)
-chunk = 4  # this should equal the number of CPU cores (for parallel computation)
-for i in range(0, len(chs), chunk):
-    ch = chs[i:i + chunk]
-    tfr = tfr_multitaper(epochs[query], freqs, freqs, picks=ch, n_jobs=min(chunk, len(ch)),
-                         average=False, return_itc=False).crop(tmin=-1.5)
-    tmp = tfr_timewarp(tfr, durations).average()
-    tmp.apply_baseline(baseline=(None, -0.5), mode="percent")
-    if i == 0:
-        tfr_warped = tmp
-    else:
-        tfr_warped.add_channels([tmp])
 
+tfr_warped = tfr_timewarp_multichannel(epochs[query], durations, freqs, n_jobs=4)
 tfr_warped.save("S01-procedure-tfr.h5")
 
 # show difference between retrieved and procedural problems

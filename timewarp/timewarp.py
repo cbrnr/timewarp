@@ -3,8 +3,8 @@
 import numpy as np
 from scipy.signal import resample_poly
 import matplotlib.pyplot as plt
-from mne import create_info, EpochsArray
-from mne.time_frequency import EpochsTFR
+from mne import create_info, EpochsArray, pick_types
+from mne.time_frequency import EpochsTFR, tfr_multitaper
 
 
 def tfr_timewarp(tfr, durations):
@@ -34,6 +34,34 @@ def tfr_timewarp(tfr, durations):
         data[i] = resample_poly(cropped, length, cropped.shape[-1], axis=-1, padtype="line")
     data = np.concatenate((tfr.data[..., baseline], data), axis=-1)
     return EpochsTFR(tfr.info, data, tfr.times[:data.shape[-1]], tfr.freqs)
+
+
+def tfr_timewarp_multichannel(epochs, durations, freqs, n_jobs=1):
+    """Compute time-warped TFRs in parallel.
+
+    Parameters
+    ----------
+    epochs : mne.Epochs
+        TODO
+    durations : numpy.ndarray
+        Duration of each epoch (in s).
+    freqs : array-like
+        TODO
+    n_jobs : int
+        Number of jobs running in parallel (should be at most the number of CPU cores).
+    """
+    chs = pick_types(epochs.info, eeg=True, meg=True)
+    for i in range(0, len(chs), n_jobs):
+        ch = chs[i:i + n_jobs]
+        tfr = tfr_multitaper(epochs, freqs, freqs, picks=ch, average=False,
+                             n_jobs=min(n_jobs, len(ch)), return_itc=False).crop(tmin=-1.5)
+        tmp = tfr_timewarp(tfr, durations).average()
+        tmp.apply_baseline(baseline=(None, -0.5), mode="percent")
+        if i == 0:
+            tfr_warped = tmp
+        else:
+            tfr_warped.add_channels([tmp])
+    return tfr_warped
 
 
 def generate_epochs(n=30, chs=1, fs=500, f1=10, f2=20, baseline=0, append=0):

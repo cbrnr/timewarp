@@ -1,6 +1,7 @@
 """Time-warp variable-length TFRs."""
 
-from .timewarp import plot_tfr_grid, tfr_timewarp, generate_epochs
+from .timewarp import (tfr_timewarp, tfr_timewarp_multichannel, plot_tfr_grid,
+                       generate_epochs)
 
 
-__all__ = [tfr_timewarp, generate_epochs, plot_tfr_grid]
+__all__ = [tfr_timewarp, tfr_timewarp_multichannel, plot_tfr_grid, generate_epochs]
