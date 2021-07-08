@@ -19,7 +19,6 @@ events = events[events[:, 2] == 2, :]  # keep only problem onset events (2)
 # preprocess
 raw.drop_channels("Status")
 raw.set_montage("biosemi64")
-raw.filter(1, 50)
 bad_segments = np.loadtxt(fpath / "S01_bad_segments.csv", skiprows=1, delimiter=",") / fs
 raw.set_annotations(mne.Annotations(*bad_segments.T, "bad_segment"))
 
@@ -51,7 +50,7 @@ tmax = metadata["rt"].max()
 
 epochs = mne.Epochs(raw, events, event_id=dict(onset=2), tmin=-2, tmax=tmax, baseline=None,
                     reject_by_annotation=True, metadata=metadata, preload=True)
-freqs = np.arange(1, 36, 0.5)
+freqs = np.arange(2, 36, 0.5)
 
 # retrieved problems
 query = "rt > 0 and correct == 0 and strategy == 'retrieve'"
