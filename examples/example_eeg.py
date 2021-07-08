@@ -21,11 +21,11 @@ def plot_tfr_grid(tfr, title=None, figsize=None, show=True):
                 CP6=(5, 7), TP8=(5, 8), P7=(6, 0), P5=(6, 1), P3=(6, 2), P1=(6, 3),
                 Pz=(6, 4), P2=(6, 5), P4=(6, 6), P6=(6, 7), P8=(6, 8), PO7=(7, 2),
                 PO3=(7, 3), POz=(7, 4), PO4=(7, 5), PO8=(7, 6), O1=(8, 3), Oz=(8, 4),
-                O2=(8, 5))
+                O2=(8, 5), P9=(7, 0), P10=(7, 8))
     fig, axes = plt.subplots(9, 9, sharex=True, sharey=True, figsize=figsize)
     for ax in axes.flat:  # turn all axes off by default
         ax.set_axis_off()
-    for ch in set(tfr.ch_names) - set(["P9", "P10", "Iz"]):
+    for ch in set(tfr.ch_names) - {"Iz"}:
         ax = axes[grid[ch]]
         ax.axis("on")
         tfr.plot(picks=[ch], axes=ax, vmin=-1, vmax=1, colorbar=False, show=False,
