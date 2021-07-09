@@ -36,7 +36,7 @@ def tfr_timewarp(tfr, durations):
     return EpochsTFR(tfr.info, data, tfr.times[:data.shape[-1]], tfr.freqs)
 
 
-def tfr_timewarp_multichannel(epochs, durations, freqs, n_jobs=1):
+def tfr_timewarp_multichannel(epochs, durations, freqs, n_cycles, n_jobs=1):
     """Compute time-warped TFRs in parallel.
 
     Parameters
@@ -47,13 +47,15 @@ def tfr_timewarp_multichannel(epochs, durations, freqs, n_jobs=1):
         Duration of each epoch (in s).
     freqs : array-like
         TODO
+    n_cycles : array-like
+        TODO
     n_jobs : int
         Number of jobs running in parallel (should be at most the number of CPU cores).
     """
     chs = pick_types(epochs.info, eeg=True, meg=True)
     for i in range(0, len(chs), n_jobs):
         ch = chs[i:i + n_jobs]
-        tfr = tfr_multitaper(epochs, freqs, freqs, picks=ch, average=False,
+        tfr = tfr_multitaper(epochs, freqs, n_cycles, picks=ch, average=False,
                              n_jobs=min(n_jobs, len(ch)), return_itc=False).crop(tmin=-1.5)
         tmp = tfr_timewarp(tfr, durations).average()
         tmp.apply_baseline(baseline=(None, -0.5), mode="percent")

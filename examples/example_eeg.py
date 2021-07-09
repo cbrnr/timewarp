@@ -55,14 +55,14 @@ freqs = np.arange(2, 36, 0.5)
 query = "rt > 0 and correct == 0 and strategy == 'retrieve'"
 durations = epochs[query].metadata["rt"].values
 
-tfr_warped = tfr_timewarp_multichannel(epochs[query], durations, freqs, n_jobs=4)
+tfr_warped = tfr_timewarp_multichannel(epochs[query], durations, freqs, freqs, n_jobs=4)
 tfr_warped.save("S01-retrieve-tfr.h5")
 
 # procedural problems
 query = "rt > 0 and correct == 0 and strategy == 'procedure'"
 durations = epochs[query].metadata["rt"].values
 
-tfr_warped = tfr_timewarp_multichannel(epochs[query], durations, freqs, n_jobs=4)
+tfr_warped = tfr_timewarp_multichannel(epochs[query], durations, freqs, freqs, n_jobs=4)
 tfr_warped.save("S01-procedure-tfr.h5")
 
 # show difference between retrieved and procedural problems
