@@ -159,6 +159,7 @@ def plot_tfr_grid(tfr, title=None, figsize=None, show=True):
             ax.set_xlabel(r"$\it{t}$ (%)", size=8)
             ax.tick_params(labelsize=7)
     fig.suptitle(title)
+    fig.tight_layout()
     if show:
         plt.show()
-    return fig.tight_layout()
+    return fig
