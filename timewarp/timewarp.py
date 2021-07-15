@@ -160,5 +160,5 @@ def plot_tfr_grid(tfr, title=None, figsize=None, show=True):
             ax.tick_params(labelsize=7)
     fig.suptitle(title)
     if show:
-        fig.show()
+        plt.show()
     return fig.tight_layout()
