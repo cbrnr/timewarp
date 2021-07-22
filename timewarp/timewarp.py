@@ -1,22 +1,26 @@
 """Time-warp variable-length TFRs."""
 
 import numpy as np
-from scipy.signal import resample_poly
+from scipy.signal import resample_poly as rs
 import matplotlib.pyplot as plt
 from mne import create_info, EpochsArray, pick_types
 from mne.time_frequency import EpochsTFR, tfr_multitaper
 
 
-def tfr_timewarp(tfr, durations):
+def tfr_timewarp(tfr, durations, resample=None):
     """Timewarp TFR for variable-length epochs.
 
     Parameters
     ----------
     tfr : mne.time_frequency.EpochsTFR
-        Precomputed EpochsTFR using fixed-length epochs. Time-warping is based on the
-        duration of the longest epoch.
+        Precomputed EpochsTFR. Time-warping is based on the duration of the longest epoch.
     durations : numpy.ndarray
         Duration of each epoch (in s).
+    resample : tuple | None
+        If tuple, must consist of two integers, where the first element specifies the number
+        of samples to resample the baseline period (times < 0) and the second element
+        specifies the number of samples to resample the activity period (times >= 0). If
+        None, do not resample.
 
     Returns
     -------
@@ -25,18 +29,33 @@ def tfr_timewarp(tfr, durations):
     """
     fs = tfr.info["sfreq"]
     start = np.zeros_like(durations, dtype=int)
-    stop = np.round(durations * fs).astype(int) + 1
-    length = np.round(tfr.times[-1] * fs).astype(int) + 1
-    baseline = tfr.times < 0
-    data = np.empty((*tfr.data.shape[:-1], length))
+    stop = np.round(durations * fs).astype(int) + 1  # + 1 because stop index is excluded
+    times = tfr.times
+    baseline_idx, activity_idx = times < 0, times >= 0
+    if resample is None:
+        n_baseline, n_activity = baseline_idx.sum(), activity_idx.sum()
+    else:
+        n_baseline, n_activity = resample
+        # use artificial time limits -1 to 5 s
+        times = np.hstack((np.linspace(-1, 0, resample[0]), np.linspace(0, 5, resample[1])))
+
+    # time-warp activity
+    activity = np.empty((*tfr.data.shape[:-1], n_activity))
     for i, epoch in enumerate(tfr.data):
-        cropped = epoch[..., np.arange(start[i], stop[i]) + baseline.sum()]
-        data[i] = resample_poly(cropped, length, cropped.shape[-1], axis=-1, padtype="line")
-    data = np.concatenate((tfr.data[..., baseline], data), axis=-1)
-    return EpochsTFR(tfr.info, data, tfr.times[:data.shape[-1]], tfr.freqs)
+        cropped = epoch[..., np.arange(start[i], stop[i]) + baseline_idx.sum()]
+        activity[i] = rs(cropped, n_activity, cropped.shape[-1], axis=-1, padtype="line")
+
+    # resample baseline if requested
+    baseline = tfr.data[..., baseline_idx]
+    if n_baseline != baseline_idx.sum():
+        baseline = rs(baseline, n_baseline, baseline.shape[-1], axis=-1, padtype="line")
+
+    data = np.concatenate((baseline, activity), axis=-1)
+
+    return EpochsTFR(tfr.info, data, times, tfr.freqs)
 
 
-def tfr_timewarp_multichannel(epochs, durations, freqs, n_cycles, n_jobs=1):
+def tfr_timewarp_multichannel(epochs, durations, freqs, n_cycles, resample=None, n_jobs=1):
     """Compute time-warped TFRs in parallel.
 
     Parameters
@@ -49,6 +68,11 @@ def tfr_timewarp_multichannel(epochs, durations, freqs, n_cycles, n_jobs=1):
         TODO
     n_cycles : array-like
         TODO
+    resample : tuple | None
+        If tuple, must consist of two integers, where the first element specifies the number
+        of samples to resample the baseline period (times < 0) and the second element
+        specifies the number of samples to resample the activity period (times >= 0). If
+        None, do not resample.
     n_jobs : int
         Number of jobs running in parallel (should be at most the number of CPU cores).
     """
@@ -57,8 +81,8 @@ def tfr_timewarp_multichannel(epochs, durations, freqs, n_cycles, n_jobs=1):
         ch = chs[i:i + n_jobs]
         tfr = tfr_multitaper(epochs, freqs, n_cycles, picks=ch, average=False,
                              n_jobs=min(n_jobs, len(ch)), return_itc=False).crop(tmin=-1.5)
-        tmp = tfr_timewarp(tfr, durations).average()
-        tmp.apply_baseline(baseline=(None, -0.5), mode="percent")
+        tmp = tfr_timewarp(tfr, durations, resample).average()
+        tmp.apply_baseline(baseline=(None, -0.25), mode="percent")  # TODO: necessary here?
         if i == 0:
             tfr_warped = tmp
         else:
@@ -66,7 +90,7 @@ def tfr_timewarp_multichannel(epochs, durations, freqs, n_cycles, n_jobs=1):
     return tfr_warped
 
 
-def generate_epochs(n=30, chs=1, fs=500, f1=10, f2=20, baseline=0, append=0):
+def generate_epochs(n=30, chs=1, fs=500, f1=10, f2=20, baseline=0):
     """Create toy data consisting of epochs with variable random lengths.
 
     Each of the n epochs contains an oscillation with f1 Hz in its first half and an
@@ -88,8 +112,6 @@ def generate_epochs(n=30, chs=1, fs=500, f1=10, f2=20, baseline=0, append=0):
         Oscillation frequency in second epoch half (in Hz).
     baseline : int | float
         Baseline duration (in s). Contains small non-zero values.
-    append : int | float
-        Zero-padding (in s) added to the longest epoch.
 
     Returns
     -------
@@ -113,9 +135,6 @@ def generate_epochs(n=30, chs=1, fs=500, f1=10, f2=20, baseline=0, append=0):
     if baseline > 0:
         values = np.full((n, chs, int(baseline * fs)), 1e-7)
         array = np.concatenate((values, array), axis=-1)
-    if append > 0:
-        zeros = np.zeros((n, chs, int(append * fs)))
-        array = np.concatenate((array, zeros), axis=-1)
     epochs = EpochsArray(array, info, tmin=-baseline)
     return epochs, durations
 
