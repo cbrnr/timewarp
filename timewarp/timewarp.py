@@ -82,7 +82,6 @@ def tfr_timewarp_multichannel(epochs, durations, freqs, n_cycles, resample=None,
         tfr = tfr_multitaper(epochs, freqs, n_cycles, picks=ch, average=False,
                              n_jobs=min(n_jobs, len(ch)), return_itc=False).crop(tmin=-1.5)
         tmp = tfr_timewarp(tfr, durations, resample).average()
-        tmp.apply_baseline(baseline=(None, -0.25), mode="percent")  # TODO: necessary here?
         if i == 0:
             tfr_warped = tmp
         else:

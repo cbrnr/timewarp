@@ -59,6 +59,7 @@ durations = epochs[query].metadata["rt"].values
 
 tfr_retrieve = tfr_timewarp_multichannel(epochs[query], durations, freqs, freqs,
                                          resample=(1000, 5000), n_jobs=2)
+tfr_retrieve.apply_baseline(baseline=(None, -0.25), mode="percent")
 
 # procedural problems
 query = "rt > 0 and correct == 0 and strategy == 'procedure'"
@@ -66,6 +67,7 @@ durations = epochs[query].metadata["rt"].values
 
 tfr_procedure = tfr_timewarp_multichannel(epochs[query], durations, freqs, freqs,
                                           resample=(1000, 5000), n_jobs=2)
+tfr_procedure.apply_baseline(baseline=(None, -0.25), mode="percent")
 
 tfr_diff = tfr_retrieve - tfr_procedure
 
