@@ -29,6 +29,8 @@ raw.set_eeg_reference("average")
 ica = mne.preprocessing.read_ica(fpath / "S01-ica.fif.gz")
 ica.apply(raw)
 
+raw.interpolate_bads()
+
 # load meta information
 log = pd.read_csv(fpath / "S01_EEG.csv", usecols=["thisItem", "corr"])
 log.columns = ["item", "correct"]
@@ -55,19 +57,15 @@ freqs = np.arange(2, 36, 0.5)
 query = "rt > 0 and correct == 0 and strategy == 'retrieve'"
 durations = epochs[query].metadata["rt"].values
 
-tfr_warped = tfr_timewarp_multichannel(epochs[query], durations, freqs, freqs, n_jobs=4)
-tfr_warped.save("S01-retrieve-tfr.h5")
+tfr_retrieve = tfr_timewarp_multichannel(epochs[query], durations, freqs, freqs,
+                                         resample=(1000, 5000), n_jobs=2)
 
 # procedural problems
 query = "rt > 0 and correct == 0 and strategy == 'procedure'"
 durations = epochs[query].metadata["rt"].values
 
-tfr_warped = tfr_timewarp_multichannel(epochs[query], durations, freqs, freqs, n_jobs=4)
-tfr_warped.save("S01-procedure-tfr.h5")
-
-# show difference between retrieved and procedural problems
-tfr_retrieve = mne.time_frequency.read_tfrs("S01-retrieve-tfr.h5", condition=0)
-tfr_procedure = mne.time_frequency.read_tfrs("S01-procedure-tfr.h5", condition=0)
+tfr_procedure = tfr_timewarp_multichannel(epochs[query], durations, freqs, freqs,
+                                          resample=(1000, 5000), n_jobs=2)
 
 tfr_diff = tfr_retrieve - tfr_procedure
 
