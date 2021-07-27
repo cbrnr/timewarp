@@ -138,7 +138,7 @@ def generate_epochs(n=30, chs=1, fs=500, f1=10, f2=20, baseline=0):
     return epochs, durations
 
 
-def plot_tfr_grid(tfr, title=None, figsize=None, show=True):
+def plot_tfr_grid(tfr, title=None, figsize=None, vmin=-1, vmax=1, show=True):
     """Plot TFRs of channels in a grid."""
     grid = dict(Fp1=(0, 3), Fpz=(0, 4), Fp2=(0, 5), AF7=(1, 2), AF3=(1, 3), AFz=(1, 4),
                 AF4=(1, 5), AF8=(1, 6), F7=(2, 0), F5=(2, 1), F3=(2, 2), F1=(2, 3),
@@ -158,7 +158,7 @@ def plot_tfr_grid(tfr, title=None, figsize=None, show=True):
     for ch in set(tfr.ch_names) - {"Iz"}:
         ax = axes[grid[ch]]
         ax.axis("on")
-        tfr.plot(picks=[ch], axes=ax, vmin=-1, vmax=1, colorbar=False, show=False,
+        tfr.plot(picks=[ch], axes=ax, vmin=vmin, vmax=vmax, colorbar=False, show=False,
                  verbose=False)
         ax.axvline(color="black", linewidth=0.5, linestyle="--")
         ax.set_xlabel(None)
