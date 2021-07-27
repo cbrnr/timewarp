@@ -160,7 +160,7 @@ def plot_tfr_grid(tfr, title=None, figsize=None, vmin=-1, vmax=1, show=True):
         ax.axis("on")
         tfr.plot(picks=[ch], axes=ax, vmin=vmin, vmax=vmax, colorbar=False, show=False,
                  verbose=False)
-        ax.axvline(color="black", linewidth=0.5, linestyle="--")
+        ax.axvline(ymax=0.8, color="black", linewidth=0.5, linestyle="--")
         ax.set_xlabel(None)
         ax.set_xticks(xticks)
         ax.set_xticklabels([0, 25, 50, 75, 100])
@@ -178,6 +178,8 @@ def plot_tfr_grid(tfr, title=None, figsize=None, vmin=-1, vmax=1, show=True):
             ax.tick_params(labelsize=7)
     fig.suptitle(title)
     fig.tight_layout()
+    cbar = fig.colorbar(fig.axes[3].images[0], ax=fig.axes[-1], orientation="horizontal")
+    cbar.ax.tick_params(labelsize=7)
     if show:
         plt.show()
     return fig
