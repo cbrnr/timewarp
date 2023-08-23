@@ -43,7 +43,7 @@ strategy = pd.read_csv(fpath / "S01_Strategy.csv", usecols=["thisItem", "strat_K
 strategy.columns = ["item", "strategy"]
 strategy["strategy"].replace(
     {"num_1": "retrieve", "num_2": "procedure", "num_3": "procedure", "num_4": "other"},
-    inplace=True
+    inplace=True,
 )
 log = log.merge(strategy, how="left")
 log.drop(columns="item", inplace=True)
