@@ -1,14 +1,14 @@
 """Time-warping example using real EEG data."""
-
 from pathlib import Path
+
+import mne
 import numpy as np
 import pandas as pd
-import mne
-from timewarp import tfr_timewarp_multichannel, plot_tfr_grid
 
+from timewarp import plot_tfr_grid, tfr_timewarp_multichannel
 
 # load data
-fpath = Path("/Users/clemens/Downloads/testfiles")
+fpath = Path("./data")
 raw = mne.io.read_raw_bdf(
     fpath / "S01.bdf", exclude=[f"EXG{i}" for i in range(1, 9)], preload=True
 )
