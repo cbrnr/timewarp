@@ -1,10 +1,10 @@
 """Time-warp variable-length TFRs."""
 
-import numpy as np
-from scipy.signal import resample_poly as rs
 import matplotlib.pyplot as plt
-from mne import create_info, EpochsArray, pick_types
+import numpy as np
+from mne import EpochsArray, create_info, pick_types
 from mne.time_frequency import EpochsTFR, tfr_multitaper
+from scipy.signal import resample_poly as rs
 
 
 def tfr_timewarp(tfr, durations, resample=None):
@@ -79,8 +79,15 @@ def tfr_timewarp_multichannel(epochs, durations, freqs, n_cycles, resample=None,
     chs = pick_types(epochs.info, eeg=True, meg=True)
     for i in range(0, len(chs), n_jobs):
         ch = chs[i:i + n_jobs]
-        tfr = tfr_multitaper(epochs, freqs, n_cycles, picks=ch, average=False,
-                             n_jobs=min(n_jobs, len(ch)), return_itc=False).crop(tmin=-1.5)
+        tfr = tfr_multitaper(
+            epochs,
+            freqs,
+            n_cycles,
+            picks=ch,
+            average=False,
+            n_jobs=min(n_jobs, len(ch)),
+            return_itc=False,
+        ).crop(tmin=-1.5)
         tmp = tfr_timewarp(tfr, durations, resample).average()
         if i == 0:
             tfr_warped = tmp
@@ -158,8 +165,15 @@ def plot_tfr_grid(tfr, title=None, figsize=None, vmin=-1, vmax=1, show=True):
     for ch in set(tfr.ch_names) - {"Iz"}:
         ax = axes[grid[ch]]
         ax.axis("on")
-        tfr.plot(picks=[ch], axes=ax, vmin=vmin, vmax=vmax, colorbar=False, show=False,
-                 verbose=False)
+        tfr.plot(
+            picks=[ch],
+            axes=ax,
+            vmin=vmin,
+            vmax=vmax,
+            colorbar=False,
+            show=False,
+            verbose=False,
+        )
         ax.axvline(ymax=0.8, color="black", linewidth=0.5, linestyle="--")
         ax.set_xlabel(None)
         ax.set_xticks(xticks)

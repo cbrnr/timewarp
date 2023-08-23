@@ -9,8 +9,9 @@ from timewarp import tfr_timewarp_multichannel, plot_tfr_grid
 
 # load data
 fpath = Path("/Users/clemens/Downloads/testfiles")
-raw = mne.io.read_raw_bdf(fpath / "S01.bdf", exclude=[f"EXG{i}" for i in range(1, 9)],
-                          preload=True)
+raw = mne.io.read_raw_bdf(
+    fpath / "S01.bdf", exclude=[f"EXG{i}" for i in range(1, 9)], preload=True
+)
 fs = raw.info["sfreq"]
 events = mne.find_events(raw, uint_cast=True)
 events = events[events[:, 2] == 2, :]  # keep only problem onset events (2)
@@ -40,8 +41,10 @@ tmp["op1"] = tmp["op1"].astype(int)
 tmp["op2"] = tmp["op2"].astype(int)
 strategy = pd.read_csv(fpath / "S01_Strategy.csv", usecols=["thisItem", "strat_Keys"])
 strategy.columns = ["item", "strategy"]
-strategy["strategy"].replace({"num_1": "retrieve", "num_2": "procedure",
-                              "num_3": "procedure", "num_4": "other"}, inplace=True)
+strategy["strategy"].replace(
+    {"num_1": "retrieve", "num_2": "procedure", "num_3": "procedure", "num_4": "other"},
+    inplace=True
+)
 log = log.merge(strategy, how="left")
 log.drop(columns="item", inplace=True)
 rt = pd.read_csv(fpath / "S01_RT.csv")
@@ -49,24 +52,35 @@ metadata = pd.concat((tmp, log, rt), axis="columns")
 
 tmax = metadata["rt"].max()
 
-epochs = mne.Epochs(raw, events, event_id=dict(onset=2), tmin=-2, tmax=tmax, baseline=None,
-                    reject_by_annotation=True, metadata=metadata, preload=True)
+epochs = mne.Epochs(
+    raw,
+    events,
+    event_id=dict(onset=2),
+    tmin=-2,
+    tmax=tmax,
+    baseline=None,
+    reject_by_annotation=True,
+    metadata=metadata,
+    preload=True,
+)
 freqs = np.arange(2, 36, 0.5)
 
 # retrieved problems
 query = "rt > 0 and correct == 0 and strategy == 'retrieve'"
 durations = epochs[query].metadata["rt"].values
 
-tfr_retrieve = tfr_timewarp_multichannel(epochs[query], durations, freqs, freqs,
-                                         resample=(1000, 5000), n_jobs=2)
+tfr_retrieve = tfr_timewarp_multichannel(
+    epochs[query], durations, freqs, freqs, resample=(1000, 5000), n_jobs=2
+)
 tfr_retrieve.apply_baseline(baseline=(None, -0.25), mode="percent")
 
 # procedural problems
 query = "rt > 0 and correct == 0 and strategy == 'procedure'"
 durations = epochs[query].metadata["rt"].values
 
-tfr_procedure = tfr_timewarp_multichannel(epochs[query], durations, freqs, freqs,
-                                          resample=(1000, 5000), n_jobs=2)
+tfr_procedure = tfr_timewarp_multichannel(
+    epochs[query], durations, freqs, freqs, resample=(1000, 5000), n_jobs=2
+)
 tfr_procedure.apply_baseline(baseline=(None, -0.25), mode="percent")
 
 tfr_diff = tfr_retrieve - tfr_procedure
