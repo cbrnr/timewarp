@@ -63,7 +63,7 @@ epochs = mne.Epochs(
     metadata=metadata,
     preload=True,
 )
-freqs = np.arange(2, 36, 0.5)
+freqs = np.arange(2, 31, 0.5)
 
 # retrieved problems
 query = "rt > 0 and correct == 0 and strategy == 'retrieve'"

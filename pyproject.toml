@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "timewarp"
+description = "A package for time-warping EEG/MEG time-frequency maps"
+license = {text = "BSD 3-Clause"}
+authors = [
+    {name = "Clemens Brunner", email = "clemens.brunner@gmail.com"},
+]
+requires-python = ">=3.9"
+classifiers = [
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+keywords = ["EEG", "MEG", "MNE", "electrophysiology"]
+dependencies = [
+    "matplotlib >= 3.7.0",
+    "mne >= 1.4.0",
+    "numpy >= 1.25",
+    "pandas >= 2.0.0",
+    "scipy >= 1.11.0",
+]
+dynamic = ["version", "readme"]
+
+[tool.black]
+line-length = 92
+
+[tool.ruff]
+select = ["E", "F", "I", "W"]
+line-length = 92
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.setuptools.dynamic]
+version = {attr = "timewarp.__version__"}
+readme = {file = "README.md", content-type = "text/markdown"}
+
+[tool.setuptools.packages.find]
+include = ["timewarp"]
