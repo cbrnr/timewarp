@@ -246,6 +246,7 @@ def plot_tfr_grid(tfr, title=None, figsize=None, vmin=-1, vmax=1, show=True):
         ax.set_xticklabels([0, 25, 50, 75, 100])
         ax.set_ylabel(None)
         ax.text(0.03, 0.85, ch, transform=ax.transAxes, size=8)
+        cbarimage = ax.images[0]  # for colorbar
     for row in range(9):  # show y-axis labels only in left column
         ax = axes[(row, 0)]
         if ax.axison:
@@ -258,7 +259,7 @@ def plot_tfr_grid(tfr, title=None, figsize=None, vmin=-1, vmax=1, show=True):
             ax.tick_params(labelsize=7)
     fig.suptitle(title)
     fig.tight_layout()
-    cbar = fig.colorbar(fig.axes[3].images[0], ax=fig.axes[-1], orientation="horizontal")
+    cbar = fig.colorbar(cbarimage, ax=fig.axes[-1], orientation="horizontal")
     cbar.ax.tick_params(labelsize=7)
     if show:
         plt.show()
