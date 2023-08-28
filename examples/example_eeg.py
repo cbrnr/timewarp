@@ -56,8 +56,8 @@ epochs = mne.Epochs(
     raw,
     events,
     event_id=dict(onset=2),
-    tmin=-2,
-    tmax=tmax,
+    tmin=-1.5 - 0.5,  # add 0.5s before each baseline
+    tmax=tmax + 0.5,  # add 0.5s after each epoch
     baseline=None,
     reject_by_annotation=True,
     metadata=metadata,

@@ -99,7 +99,7 @@ def tfr_timewarp_multichannel(epochs, durations, freqs, n_cycles, resample=None,
             n_jobs=min(n_jobs, len(ch)),
             return_itc=False,
         )
-        tfr.crop(tmin=-1.5)
+        tfr.crop(tmin=tfr.times[0] + 0.5, tmax=tfr.times[-1] - 0.5)
         tmp = tfr_timewarp(tfr, durations, resample).average()
         if i == 0:
             tfr_warped = tmp
