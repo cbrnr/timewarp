@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.colors import TwoSlopeNorm
 from mne import EpochsArray, create_info, pick_types
 from mne.time_frequency import EpochsTFR, tfr_multitaper
 from scipy.signal import resample_poly as rs
@@ -224,6 +225,7 @@ def plot_tfr_grid(tfr, title=None, figsize=None, vmin=-1, vmax=1, show=True):
         P9=(7, 0),
         P10=(7, 8),
     )
+    cnorm = TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
     xticks = np.quantile(tfr.times[tfr.times >= 0], [0, 0.25, 0.5, 0.75, 1])
     fig, axes = plt.subplots(9, 9, sharex=True, sharey=True, figsize=figsize)
     for ax in axes.flat:  # turn all axes off by default
@@ -234,8 +236,8 @@ def plot_tfr_grid(tfr, title=None, figsize=None, vmin=-1, vmax=1, show=True):
         tfr.plot(
             picks=[ch],
             axes=ax,
-            vmin=vmin,
-            vmax=vmax,
+            cmap="RdBu",
+            cnorm=cnorm,
             colorbar=False,
             show=False,
             verbose=False,
