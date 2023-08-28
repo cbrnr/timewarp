@@ -62,7 +62,7 @@ epochs = mne.Epochs(
     reject_by_annotation=True,
     metadata=metadata,
     preload=True,
-)
+).resample(100)
 freqs = np.arange(2, 31, 0.5)
 
 # retrieved problems
@@ -70,7 +70,7 @@ query = "rt > 0 and correct == 0 and strategy == 'retrieve'"
 durations = epochs[query].metadata["rt"].values
 
 tfr_retrieve = tfr_timewarp_multichannel(
-    epochs[query], durations, freqs, freqs, resample=(1000, 5000), n_jobs=8
+    epochs[query], durations, freqs, freqs, n_jobs=4
 )
 tfr_retrieve.apply_baseline(baseline=(None, -0.25), mode="percent")
 
@@ -79,7 +79,7 @@ query = "rt > 0 and correct == 0 and strategy == 'procedure'"
 durations = epochs[query].metadata["rt"].values
 
 tfr_procedure = tfr_timewarp_multichannel(
-    epochs[query], durations, freqs, freqs, resample=(1000, 5000), n_jobs=8
+    epochs[query], durations, freqs, freqs, n_jobs=4
 )
 tfr_procedure.apply_baseline(baseline=(None, -0.25), mode="percent")
 
