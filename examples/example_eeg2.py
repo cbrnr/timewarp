@@ -18,10 +18,7 @@ fs = raw.info["sfreq"]
 cols = ["GeneralDomain", "Domain_Nr", "Congruency", "Stim_RT", "Stim_Corr"]
 df = pd.read_csv(fpath / (subject + ".csv"), usecols=cols)[cols]
 df.columns = ["domain", "subdomain", "congruent", "rt", "correct"]
-df["domain"] = df["domain"].replace({
-    "Naturwissenschaften": "nature",
-    "Mathematik": "math"
-})
+df["domain"] = df["domain"].replace({"Naturwissenschaften": "nature", "Mathematik": "math"})
 df["correct"] = (df["correct"] == 1).astype("boolean")
 df["congruent"] = (df["congruent"] == 1).astype("boolean")
 df.insert(0, "epoch", range(1, len(df) + 1))
@@ -42,10 +39,7 @@ events = mne.find_events(raw, uint_cast=True)
 events = events[np.in1d(events[:, 2], [1, 2, 3, 4, 5, 100, 200]), :]
 
 counts = np.bincount(events[:, 2])
-counts = defaultdict(
-    lambda: 0,
-    {i: count for i, count in enumerate(counts) if count > 0}
-)
+counts = defaultdict(lambda: 0, {i: count for i, count in enumerate(counts) if count > 0})
 
 # fix missing events for specific recordings
 if counts[1] < 200:
@@ -56,8 +50,7 @@ if counts[1] < 200:
 
     counts = np.bincount(events[:, 2])
     counts = defaultdict(
-        lambda: 0,
-        {i: count for i, count in enumerate(counts) if count > 0}
+        lambda: 0, {i: count for i, count in enumerate(counts) if count > 0}
     )
 
 raw.load_data()
@@ -94,9 +87,7 @@ freqs = np.arange(2, 31)
 query = "rt > 0 and correct and congruent"
 durations = epochs[query].metadata["rt"].values
 
-tfr_congruent = tfr_timewarp_multichannel(
-    epochs[query], durations, freqs, freqs, n_jobs=4
-)
+tfr_congruent = tfr_timewarp_multichannel(epochs[query], durations, freqs, freqs, n_jobs=4)
 tfr_congruent.apply_baseline(baseline=(None, -0.25), mode="percent")
 
 # incongruent problems

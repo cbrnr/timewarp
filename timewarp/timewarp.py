@@ -58,7 +58,7 @@ def tfr_timewarp(tfr, durations, resample=None):
 
 def tfr_timewarp_multichannel(epochs, durations, freqs, n_cycles, resample=None, n_jobs=1):
     """Compute time-warped TFRs in parallel.
-    
+
     Although MNE-Python functions for computing TFRs support parallel execution through the
     n_jobs parameter, they impose a significant memory burden when dealing with many epochs
     and channels. The reason is that time-warping requires EpochsTFR objects as opposed to
