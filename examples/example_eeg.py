@@ -1,10 +1,10 @@
 """Time-warping example using real EEG data."""
+
 from pathlib import Path
 
 import mne
 import numpy as np
 import pandas as pd
-
 from timewarp import plot_tfr_grid, tfr_timewarp_multichannel
 
 # load data

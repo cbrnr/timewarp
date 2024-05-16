@@ -1,7 +1,7 @@
 """Time-warping example using toy data."""
+
 import numpy as np
 from mne.time_frequency import tfr_multitaper
-
 from timewarp import generate_epochs, tfr_timewarp
 
 # generate toy data
