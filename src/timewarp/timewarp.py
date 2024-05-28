@@ -54,7 +54,9 @@ def tfr_timewarp(tfr, durations, resample=None):
     return EpochsTFR(tfr.info, data, times, tfr.freqs)
 
 
-def tfr_timewarp_multichannel(epochs, durations, freqs, n_cycles, resample=None, n_jobs=1):
+def tfr_timewarp_multichannel(
+    epochs, durations, freqs, n_cycles, resample=None, average=True, n_jobs=1
+):
     """Compute time-warped TFRs in parallel.
 
     Although MNE-Python functions for computing TFRs support parallel execution through the
@@ -83,6 +85,8 @@ def tfr_timewarp_multichannel(epochs, durations, freqs, n_cycles, resample=None,
         of samples to resample the baseline period (times < 0) and the second element
         specifies the number of samples to resample the activity period (times >= 0). If
         None, do not resample.
+    average : bool
+        If True, return AverageTFR object. If False, return EpochsTFR object.
     n_jobs : int
         Number of jobs running in parallel (should be at most the number of CPU cores).
     """
@@ -99,7 +103,9 @@ def tfr_timewarp_multichannel(epochs, durations, freqs, n_cycles, resample=None,
             return_itc=False,
         )
         tfr.crop(tmin=tfr.times[0] + 0.5, tmax=tfr.times[-1] - 0.5)
-        tmp = tfr_timewarp(tfr, durations, resample).average()
+        tmp = tfr_timewarp(tfr, durations, resample)
+        if average:
+            tmp = tmp.average()
         if i == 0:
             tfr_warped = tmp
         else:
