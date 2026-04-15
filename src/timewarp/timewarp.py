@@ -1,24 +1,9 @@
 """Time-warp variable-length time-frequency maps."""
 
-import mne
 import numpy as np
 from mne import pick_types
-from mne.time_frequency import tfr_multitaper
+from mne.time_frequency import EpochsTFRArray, tfr_multitaper
 from scipy.signal import resample_poly as rs
-
-
-def _build_epochs_tfr_like(tfr, data, times):
-    """Create an EpochsTFR-like object across MNE versions."""
-    if hasattr(mne.time_frequency, "EpochsTFRArray"):
-        return mne.time_frequency.EpochsTFRArray(
-            info=tfr.info,
-            data=data,
-            times=times,
-            freqs=tfr.freqs,
-        )
-
-    # Fallback for older MNE versions.
-    return mne.time_frequency.EpochsTFR(tfr.info, data, times, tfr.freqs)
 
 
 def tfr_timewarp(tfr, durations, resample=None):
@@ -68,7 +53,12 @@ def tfr_timewarp(tfr, durations, resample=None):
 
     data = np.concatenate((baseline, activity), axis=-1)
 
-    return _build_epochs_tfr_like(tfr, data, times)
+    return EpochsTFRArray(
+        info=tfr.info,
+        data=data,
+        times=times,
+        freqs=tfr.freqs,
+    )
 
 
 def tfr_timewarp_multichannel(
