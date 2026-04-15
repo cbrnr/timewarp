@@ -2,7 +2,7 @@
 
 import numpy as np
 from mne import pick_types
-from mne.time_frequency import EpochsTFR, tfr_multitaper
+from mne.time_frequency import EpochsTFRArray, tfr_multitaper
 from scipy.signal import resample_poly as rs
 
 
@@ -31,6 +31,8 @@ def tfr_timewarp(tfr, durations, resample=None):
     stop = np.round(durations * fs).astype(int) + 1  # + 1 because stop index is excluded
     times = tfr.times
     baseline_idx, activity_idx = times < 0, times >= 0
+    # ensure that stop indices do not exceed the number of activity samples
+    stop = np.minimum(stop, activity_idx.sum())
     if resample is None:
         n_baseline, n_activity = baseline_idx.sum(), activity_idx.sum()
     else:
@@ -51,7 +53,12 @@ def tfr_timewarp(tfr, durations, resample=None):
 
     data = np.concatenate((baseline, activity), axis=-1)
 
-    return EpochsTFR(tfr.info, data, times, tfr.freqs)
+    return EpochsTFRArray(
+        info=tfr.info,
+        data=data,
+        times=times,
+        freqs=tfr.freqs,
+    )
 
 
 def tfr_timewarp_multichannel(
